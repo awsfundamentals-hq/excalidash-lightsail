@@ -55,6 +55,10 @@ const INSTANCE_FILES: InstanceFile[] = [
 ];
 
 const TOKEN_PATTERN = /__[A-Z_]+__/g;
+const MAX_LOCAL_RETENTION_DAYS = 14;
+
+export const localRetentionDays = (bucketRetentionDays: number): number =>
+  Math.min(MAX_LOCAL_RETENTION_DAYS, bucketRetentionDays);
 
 const substitute = (text: string, values: UserDataValues): string =>
   text
@@ -62,6 +66,7 @@ const substitute = (text: string, values: UserDataValues): string =>
     .replaceAll("__BUCKET__", values.bucketName)
     .replaceAll("__REGION__", values.region)
     .replaceAll("__VERSION__", values.excalidashVersion)
+    .replaceAll("__LOCAL_RETENTION_DAYS__", String(localRetentionDays(values.backupRetentionDays)))
     .replaceAll("__RETENTION_DAYS__", String(values.backupRetentionDays));
 
 const heredocBlock = (file: InstanceFile, content: string): string => {
@@ -84,8 +89,8 @@ export const renderUserData = (values: UserDataValues): string => {
   ).join("\n");
   const rendered = substitute(bootstrap.replace("# __FILES__", files), values);
 
-  const leftover = rendered.match(TOKEN_PATTERN)?.filter((token) => token !== "__BACKEND_URL__");
-  if (leftover && leftover.length > 0) {
+  const leftover = rendered.match(TOKEN_PATTERN);
+  if (leftover) {
     throw new Error(`Unreplaced user-data tokens: ${[...new Set(leftover)].join(", ")}`);
   }
   return rendered;

@@ -100,6 +100,9 @@ export class ExcalidashLightsailStack extends Stack {
     new CfnOutput(this, "BucketName", { value: bucketName });
     new CfnOutput(this, "InstanceName", { value: config.instanceName });
     new CfnOutput(this, "Hostname", { value: config.hostname });
+    new CfnOutput(this, "AlarmContactCommand", {
+      value: `aws lightsail create-contact-method --protocol Email --contact-endpoint ${config.alarmEmail} --region ${REGION}`,
+    });
     new CfnOutput(this, "SshCommand", {
       value: `ssh -i ~/.ssh/LightsailDefaultKey-${REGION}.pem ubuntu@${staticIp.attrIpAddress}`,
     });

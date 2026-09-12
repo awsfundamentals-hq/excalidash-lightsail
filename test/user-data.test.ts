@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { renderUserData } from "../lib/user-data.js";
+import { localRetentionDays, renderUserData } from "../lib/user-data.js";
 
 const values = {
   hostname: "test.example.com",
@@ -32,9 +32,26 @@ describe("renderUserData", () => {
     expect(script).toContain('RETENTION_DAYS="${RETENTION_DAYS:-30}"');
   });
 
+  it("keeps local retention at or below 14 days and never above the bucket retention", () => {
+    expect(localRetentionDays(30)).toBe(14);
+    expect(localRetentionDays(7)).toBe(7);
+    expect(script).toContain("BACKUP_RETENTION_DAYS=14");
+    expect(renderUserData({ ...values, backupRetentionDays: 7 })).toContain(
+      "BACKUP_RETENTION_DAYS=7",
+    );
+  });
+
+  it("configures Docker log rotation, swap, and an apt lock timeout before installing", () => {
+    expect(script).toContain('"max-size": "10m"');
+    expect(script).toContain("fallocate -l 1G /swapfile");
+    expect(script).toContain("DPkg::Lock::Timeout=300");
+    expect(script.indexOf("/etc/docker/daemon.json")).toBeLessThan(
+      script.indexOf("apt_get install"),
+    );
+  });
+
   it("leaves no placeholder tokens behind", () => {
-    const tokens = (script.match(/__[A-Z_]+__/g) ?? []).filter((t) => t !== "__BACKEND_URL__");
-    expect(tokens).toEqual([]);
+    expect(script.match(/__[A-Z_]+__/g) ?? []).toEqual([]);
   });
 
   it("installs every instance file with a mode", () => {

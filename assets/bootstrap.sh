@@ -4,8 +4,15 @@ exec > >(tee -a /var/log/excalidash-bootstrap.log) 2>&1
 echo "[bootstrap] start $(date -u +%FT%TZ)"
 
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get install -y ca-certificates curl gnupg awscli sqlite3
+apt_get() { apt-get -o DPkg::Lock::Timeout=300 "$@"; }
+
+if [ ! -f /swapfile ]; then
+  fallocate -l 1G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  echo "/swapfile none swap sw 0 0" >> /etc/fstab
+fi
+swapon -a
 
 install -m 0755 -d /etc/apt/keyrings
 if [ ! -f /etc/apt/keyrings/docker.asc ]; then
@@ -15,8 +22,17 @@ fi
 . /etc/os-release
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable" \
   > /etc/apt/sources.list.d/docker.list
-apt-get update -y
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+install -m 0755 -d /etc/docker
+cat > /etc/docker/daemon.json <<'DAEMON_JSON'
+{
+  "log-driver": "json-file",
+  "log-opts": { "max-size": "10m", "max-file": "3" }
+}
+DAEMON_JSON
+
+apt_get update -y
+apt_get install -y ca-certificates curl awscli sqlite3 docker-ce docker-ce-cli containerd.io docker-compose-plugin
 usermod -aG docker ubuntu
 
 install -d -m 0755 /opt/excalidash /opt/excalidash/bin

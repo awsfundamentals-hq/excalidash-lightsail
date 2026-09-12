@@ -17,16 +17,16 @@ aws s3 sync "${SOURCE_DIR}" "s3://${BUCKET}/${PREFIX}" "${sync_args[@]}"
 log "synced ${SOURCE_DIR} to s3://${BUCKET}/${PREFIX}"
 
 cutoff=$(date -u -d "${RETENTION_DAYS} days ago" +%s)
-aws s3 ls "s3://${BUCKET}/${PREFIX}" --region "${REGION}" | while read -r day time _size name; do
+listing=$(aws s3 ls "s3://${BUCKET}/${PREFIX}" --region "${REGION}" || true)
+while read -r day time _size name; do
   [ -z "${name:-}" ] && continue
   modified=$(date -u -d "${day} ${time}" +%s)
-  if [ "${modified}" -lt "${cutoff}" ]; then
-    if [ "${DRY_RUN}" = "1" ]; then
-      log "would delete ${PREFIX}${name}"
-    else
-      aws s3 rm "s3://${BUCKET}/${PREFIX}${name}" --region "${REGION}" >/dev/null
-      log "deleted ${PREFIX}${name}"
-    fi
+  [ "${modified}" -ge "${cutoff}" ] && continue
+  if [ "${DRY_RUN}" = "1" ]; then
+    log "would delete ${PREFIX}${name}"
+  else
+    aws s3 rm "s3://${BUCKET}/${PREFIX}${name}" --region "${REGION}" >/dev/null
+    log "deleted ${PREFIX}${name}"
   fi
-done
+done <<<"${listing}"
 log "prune complete, retention ${RETENTION_DAYS} days"

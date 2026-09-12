@@ -10,7 +10,7 @@ export interface StackConfig {
 }
 
 export const REGION = "eu-central-1";
-export const AVAILABILITY_ZONE = "eu-central-1a";
+export const AVAILABILITY_ZONE = `${REGION}a`;
 
 const DEFAULTS: StackConfig = {
   hostname: "draw.awsfundamentals.com",

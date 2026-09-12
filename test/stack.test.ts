@@ -97,10 +97,20 @@ describe("ExcalidashLightsailStack", () => {
     expect(userData).toContain("draw.awsfundamentals.com {");
   });
 
-  it("exposes the five documented outputs", () => {
+  it("exposes the six documented outputs, including the alarm contact command", () => {
     const outputs = template.findOutputs("*");
     expect(Object.keys(outputs).sort()).toEqual(
-      ["BucketName", "Hostname", "InstanceName", "PublicIp", "SshCommand"].sort(),
+      [
+        "AlarmContactCommand",
+        "BucketName",
+        "Hostname",
+        "InstanceName",
+        "PublicIp",
+        "SshCommand",
+      ].sort(),
+    );
+    expect(outputs.AlarmContactCommand?.Value).toContain(
+      "--contact-endpoint alessandro.volpicella@gmail.com --region eu-central-1",
     );
   });
 });

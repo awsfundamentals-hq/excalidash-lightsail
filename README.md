@@ -60,7 +60,7 @@ pnpm test
 pnpm deploy --profile <your-profile> -c hostname=draw.example.com -c alarmEmail=you@example.com
 ```
 
-Every setting has a default in `cdk.json`. Override any of them with `-c key=value`:
+Every setting has a default in `lib/config.ts`. Override any of them with `-c key=value`:
 
 | Key                   | Default                       | Purpose                                          |
 | --------------------- | ----------------------------- | ------------------------------------------------ |
@@ -73,7 +73,8 @@ Every setting has a default in `cdk.json`. Override any of them with `-c key=val
 | `backupRetentionDays` | `30`                          | Days to keep backups in the bucket               |
 | `bucketName`          | `<instanceName>-<account id>` | Lightsail bucket name, globally unique           |
 
-The deploy prints five outputs: `PublicIp`, `BucketName`, `InstanceName`, `Hostname`, `SshCommand`.
+The deploy prints six outputs: `PublicIp`, `BucketName`, `InstanceName`, `Hostname`,
+`SshCommand`, and `AlarmContactCommand`.
 
 The instance boots, installs Docker and the AWS CLI, writes the compose file and
 Caddyfile, fetches or creates the secrets, and starts the stack. That takes about
@@ -108,7 +109,8 @@ Download the default SSH key once from the Lightsail console: Account, SSH keys,
 
 ## Alarms
 
-CloudFormation cannot verify an email address, so do this once per region:
+CloudFormation cannot verify an email address, so do this once per region.
+Run the `AlarmContactCommand` output from the deploy. It looks like this:
 
 ```bash
 aws lightsail create-contact-method --protocol Email --contact-endpoint you@example.com --region eu-central-1
@@ -121,7 +123,8 @@ Click the link in the email. Until then the alarms exist but stay silent.
 Two independent layers.
 
 1. Lightsail takes a snapshot of the whole disk every day at 03:00 UTC and keeps seven.
-2. ExcaliDash writes a SQLite copy to `/opt/excalidash/data/backups` at 04:00 UTC.
+2. ExcaliDash writes a SQLite copy to `/opt/excalidash/data/backups` at 04:00 UTC
+   and keeps local copies for 14 days, or fewer if `backupRetentionDays` is lower.
    A cron job syncs that folder to the bucket at 04:30 UTC and prunes objects
    older than `backupRetentionDays`.
 
@@ -160,6 +163,10 @@ The script backs up the database and syncs it to the bucket, pins both images
 to the new tag, pulls, restarts, and waits for the backend health check.
 Database migrations run inside the backend on start.
 
+The first-boot script only runs once, so also pass the new version on your next
+deploy with `-c excalidashVersion=0.6.1`, or change the default in `lib/config.ts`.
+A replaced instance then boots on the same version as the database.
+
 ## Teardown
 
 ```bash
@@ -174,6 +181,9 @@ and the backups. Delete it by hand when you are sure:
 aws s3 rm s3://<BucketName> --recursive --region eu-central-1
 aws lightsail delete-bucket --bucket-name <BucketName> --force-delete --region eu-central-1
 ```
+
+A redeploy while the old bucket still exists fails, because the name is taken.
+Either delete the bucket first, or deploy with `-c bucketName=<another-name>`.
 
 ## Not covered
 

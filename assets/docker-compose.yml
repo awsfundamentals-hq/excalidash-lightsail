@@ -13,7 +13,7 @@ services:
       - TRUST_PROXY=2
       - BACKUP_SCHEDULE=0 0 4 * * *
       - BACKUP_DIR=/app/backups
-      - BACKUP_RETENTION_DAYS=14
+      - BACKUP_RETENTION_DAYS=__LOCAL_RETENTION_DAYS__
       - UPDATE_CHECK_OUTBOUND=false
     env_file:
       - /opt/excalidash/secrets.env

@@ -1,13 +1,6 @@
 {
   "app": "npx tsx bin/app.ts",
   "context": {
-    "hostname": "draw.awsfundamentals.com",
-    "alarmEmail": "alessandro.volpicella@gmail.com",
-    "instanceName": "excalidash",
-    "bundleId": "micro_3_0",
-    "blueprintId": "ubuntu_24_04",
-    "excalidashVersion": "0.6.0",
-    "backupRetentionDays": 30,
     "@aws-cdk/core:newStyleStackSynthesis": true
   }
 }

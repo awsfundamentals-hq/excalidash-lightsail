@@ -33,7 +33,7 @@ for _ in $(seq 1 30); do
   status=$(docker inspect --format '{{.State.Health.Status}}' excalidash-backend 2>/dev/null || echo "missing")
   if [ "${status}" = "healthy" ]; then
     echo "[update] backend healthy"
-    docker compose logs backend 2>/dev/null | grep -A14 '| STORAGE' | tail -16 || true
+    docker compose logs --tail=300 backend 2>/dev/null | grep -A14 '| STORAGE' | tail -16 || true
     docker compose images
     exit 0
   fi
