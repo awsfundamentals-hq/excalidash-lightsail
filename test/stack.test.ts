@@ -68,28 +68,6 @@ describe("ExcalidashLightsailStack", () => {
     });
   });
 
-  it("creates a status-check alarm and a CPU alarm that email on ALARM and OK", () => {
-    template.resourceCountIs("AWS::Lightsail::Alarm", 2);
-    template.hasResourceProperties("AWS::Lightsail::Alarm", {
-      AlarmName: "excalidash-status-check",
-      MetricName: "StatusCheckFailed_Instance",
-      MonitoredResourceName: "excalidash",
-      ComparisonOperator: "GreaterThanOrEqualToThreshold",
-      Threshold: 1,
-      EvaluationPeriods: 2,
-      TreatMissingData: "breaching",
-      ContactProtocols: ["Email"],
-      NotificationTriggers: ["ALARM", "OK"],
-      NotificationEnabled: true,
-    });
-    template.hasResourceProperties("AWS::Lightsail::Alarm", {
-      AlarmName: "excalidash-cpu",
-      MetricName: "CPUUtilization",
-      Threshold: 90,
-      EvaluationPeriods: 3,
-    });
-  });
-
   it("passes the bucket name and hostname into the user data", () => {
     const [instance] = Object.values(template.findResources("AWS::Lightsail::Instance"));
     const userData = instance?.Properties.UserData as string;
@@ -97,20 +75,10 @@ describe("ExcalidashLightsailStack", () => {
     expect(userData).toContain("draw.awsfundamentals.com {");
   });
 
-  it("exposes the six documented outputs, including the alarm contact command", () => {
+  it("exposes the five documented outputs", () => {
     const outputs = template.findOutputs("*");
     expect(Object.keys(outputs).sort()).toEqual(
-      [
-        "AlarmContactCommand",
-        "BucketName",
-        "Hostname",
-        "InstanceName",
-        "PublicIp",
-        "SshCommand",
-      ].sort(),
-    );
-    expect(outputs.AlarmContactCommand?.Value).toContain(
-      "--contact-endpoint alessandro.volpicella@gmail.com --region eu-central-1",
+      ["BucketName", "Hostname", "InstanceName", "PublicIp", "SshCommand"].sort(),
     );
   });
 });

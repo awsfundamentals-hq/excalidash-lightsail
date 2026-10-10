@@ -8,5 +8,5 @@ const config = loadConfig((key) => app.node.tryGetContext(key));
 new ExcalidashLightsailStack(app, "ExcalidashLightsail", {
   config,
   env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: REGION },
-  description: "ExcaliDash on one Lightsail instance: static IP, bucket, snapshots, alarms",
+  description: "ExcaliDash on one Lightsail instance: static IP, bucket, snapshots",
 });

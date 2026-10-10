@@ -1,5 +1,5 @@
 import { CfnOutput, RemovalPolicy, Stack, type StackProps } from "aws-cdk-lib";
-import { CfnAlarm, CfnBucket, CfnInstance, CfnStaticIp } from "aws-cdk-lib/aws-lightsail";
+import { CfnBucket, CfnInstance, CfnStaticIp } from "aws-cdk-lib/aws-lightsail";
 import type { Construct } from "constructs";
 import { AVAILABILITY_ZONE, REGION, type StackConfig } from "./config.js";
 import { renderUserData } from "./user-data.js";
@@ -69,40 +69,10 @@ export class ExcalidashLightsailStack extends Stack {
     bucket.addResourceDependency(instance);
     bucket.applyRemovalPolicy(RemovalPolicy.RETAIN);
 
-    const alarmDefaults = {
-      monitoredResourceName: instance.instanceName,
-      contactProtocols: ["Email"],
-      notificationTriggers: ["ALARM", "OK"],
-      notificationEnabled: true,
-    };
-    const statusAlarm = new CfnAlarm(this, "StatusCheckAlarm", {
-      ...alarmDefaults,
-      alarmName: `${config.instanceName}-status-check`,
-      metricName: "StatusCheckFailed_Instance",
-      comparisonOperator: "GreaterThanOrEqualToThreshold",
-      threshold: 1,
-      evaluationPeriods: 2,
-      treatMissingData: "breaching",
-    });
-    const cpuAlarm = new CfnAlarm(this, "CpuAlarm", {
-      ...alarmDefaults,
-      alarmName: `${config.instanceName}-cpu`,
-      metricName: "CPUUtilization",
-      comparisonOperator: "GreaterThanOrEqualToThreshold",
-      threshold: 90,
-      evaluationPeriods: 3,
-      treatMissingData: "notBreaching",
-    });
-    statusAlarm.addResourceDependency(instance);
-    cpuAlarm.addResourceDependency(instance);
-
     new CfnOutput(this, "PublicIp", { value: staticIp.attrIpAddress });
     new CfnOutput(this, "BucketName", { value: bucketName });
     new CfnOutput(this, "InstanceName", { value: config.instanceName });
     new CfnOutput(this, "Hostname", { value: config.hostname });
-    new CfnOutput(this, "AlarmContactCommand", {
-      value: `aws lightsail create-contact-method --protocol Email --contact-endpoint ${config.alarmEmail} --region ${REGION}`,
-    });
     new CfnOutput(this, "SshCommand", {
       value: `ssh -i ~/.ssh/LightsailDefaultKey-${REGION}.pem ubuntu@${staticIp.attrIpAddress}`,
     });
