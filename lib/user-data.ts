@@ -55,6 +55,8 @@ const INSTANCE_FILES: InstanceFile[] = [
 ];
 
 const TOKEN_PATTERN = /__[A-Z_]+__/g;
+const BOOTSTRAP_PATH = "/usr/local/sbin/excalidash-bootstrap.sh";
+const BOOTSTRAP_MARKER = "EXCALIDASH_BOOTSTRAP_EOF";
 const MAX_LOCAL_RETENTION_DAYS = 14;
 
 export const localRetentionDays = (bucketRetentionDays: number): number =>
@@ -82,6 +84,26 @@ const heredocBlock = (file: InstanceFile, content: string): string => {
   ].join("\n");
 };
 
+/*
+  Lightsail prepends its own #!/bin/sh script to the user data, so our shebang
+  becomes a comment and dash runs everything. The wrapper stays POSIX and hands
+  the real script to bash.
+*/
+const wrapForLightsail = (bashScript: string): string => {
+  if (bashScript.includes(BOOTSTRAP_MARKER)) {
+    throw new Error("bootstrap.sh contains the wrapper heredoc marker");
+  }
+  return [
+    "#!/bin/sh",
+    `cat > ${BOOTSTRAP_PATH} <<'${BOOTSTRAP_MARKER}'`,
+    bashScript.endsWith("\n") ? bashScript.slice(0, -1) : bashScript,
+    BOOTSTRAP_MARKER,
+    `chmod 0700 ${BOOTSTRAP_PATH}`,
+    `exec /bin/bash ${BOOTSTRAP_PATH}`,
+    "",
+  ].join("\n");
+};
+
 export const renderUserData = (values: UserDataValues): string => {
   const bootstrap = readFileSync(join(assetsDir, "bootstrap.sh"), "utf8");
   const files = INSTANCE_FILES.map((file) =>
@@ -93,5 +115,5 @@ export const renderUserData = (values: UserDataValues): string => {
   if (leftover) {
     throw new Error(`Unreplaced user-data tokens: ${[...new Set(leftover)].join(", ")}`);
   }
-  return rendered;
+  return wrapForLightsail(rendered);
 };

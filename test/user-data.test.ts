@@ -12,8 +12,18 @@ const values = {
 describe("renderUserData", () => {
   const script = renderUserData(values);
 
-  it("starts with a bash shebang and strict mode", () => {
-    expect(script.startsWith("#!/bin/bash\nset -euo pipefail")).toBe(true);
+  it("survives the Lightsail sh prefix by handing a strict bash script to bash", () => {
+    const lightsailPrefix = "#!/bin/sh\necho Lightsail: Starting Instance Initialization.\n\n";
+    const lines = (lightsailPrefix + script).split("\n");
+    const firstOwnLine = lines.indexOf("#!/bin/sh", 1);
+    expect(lines[firstOwnLine + 1]).toBe(
+      "cat > /usr/local/sbin/excalidash-bootstrap.sh <<'EXCALIDASH_BOOTSTRAP_EOF'",
+    );
+    expect(lines[firstOwnLine + 2]).toBe("#!/bin/bash");
+    expect(lines[firstOwnLine + 3]).toBe("set -euo pipefail");
+    expect(
+      script.trimEnd().endsWith("exec /bin/bash /usr/local/sbin/excalidash-bootstrap.sh"),
+    ).toBe(true);
   });
 
   it("pins both ExcaliDash images to the configured version", () => {
@@ -47,6 +57,17 @@ describe("renderUserData", () => {
     expect(script).toContain("DPkg::Lock::Timeout=300");
     expect(script.indexOf("/etc/docker/daemon.json")).toBeLessThan(
       script.indexOf("apt_get install"),
+    );
+  });
+
+  it("installs AWS CLI v2 from the official installer, not apt", () => {
+    expect(script).not.toMatch(/apt_get install[^\n]*\bawscli\b/);
+    expect(script).toContain("https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip");
+  });
+
+  it("sends X-Forwarded-Proto in the health check so the HTTPS redirect does not fail it", () => {
+    expect(script).toContain(
+      "'http://127.0.0.1:8000/health', { headers: { 'X-Forwarded-Proto': 'https' } }",
     );
   });
 
