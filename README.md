@@ -67,7 +67,7 @@ Every setting has a default in `lib/config.ts`. Override any of them with `-c ke
 | `instanceName`        | `excalidash`                  | Lightsail resource name prefix                   |
 | `bundleId`            | `micro_3_0`                   | Instance size. Changing it replaces the instance |
 | `blueprintId`         | `ubuntu_24_04`                | OS image. Changing it replaces the instance      |
-| `excalidashVersion`   | `0.6.0`                       | Image tag baked into the first boot              |
+| `excalidashVersion`   | `0.6.5`                       | Image tag baked into the first boot              |
 | `backupRetentionDays` | `30`                          | Days to keep backups in the bucket               |
 | `bucketName`          | `<instanceName>-<account id>` | Lightsail bucket name, globally unique           |
 

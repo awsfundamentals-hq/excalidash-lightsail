@@ -16,7 +16,7 @@ const DEFAULTS: StackConfig = {
   instanceName: "excalidash",
   bundleId: "micro_3_0",
   blueprintId: "ubuntu_24_04",
-  excalidashVersion: "0.6.0",
+  excalidashVersion: "0.6.5",
   backupRetentionDays: 30,
 };
 
