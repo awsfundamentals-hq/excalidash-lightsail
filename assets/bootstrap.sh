@@ -32,7 +32,15 @@ cat > /etc/docker/daemon.json <<'DAEMON_JSON'
 DAEMON_JSON
 
 apt_get update -y
-apt_get install -y ca-certificates curl awscli sqlite3 docker-ce docker-ce-cli containerd.io docker-compose-plugin
+apt_get install -y ca-certificates curl unzip sqlite3 docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+if ! command -v aws >/dev/null 2>&1; then
+  awscli_tmp="$(mktemp -d)"
+  curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o "${awscli_tmp}/awscliv2.zip"
+  unzip -q "${awscli_tmp}/awscliv2.zip" -d "${awscli_tmp}"
+  "${awscli_tmp}/aws/install"
+  rm -rf "${awscli_tmp}"
+fi
 usermod -aG docker ubuntu
 
 install -d -m 0755 /opt/excalidash /opt/excalidash/bin

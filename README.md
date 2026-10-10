@@ -33,7 +33,6 @@ flowchart LR
 | Auth     | ExcaliDash local accounts, registration closed, first admin via bootstrap code |
 | Secrets  | Generated once on first boot, kept in the Lightsail bucket, no IAM keys        |
 | Backups  | Daily Lightsail snapshot plus nightly SQLite copy synced to the bucket         |
-| Alarms   | Instance status check and CPU, by email                                        |
 
 ## Cost
 
@@ -57,7 +56,7 @@ flowchart LR
 ```bash
 pnpm install
 pnpm test
-pnpm deploy --profile <your-profile> -c hostname=draw.example.com -c alarmEmail=you@example.com
+pnpm deploy --profile <your-profile> -c hostname=draw.example.com
 ```
 
 Every setting has a default in `lib/config.ts`. Override any of them with `-c key=value`:
@@ -65,16 +64,15 @@ Every setting has a default in `lib/config.ts`. Override any of them with `-c ke
 | Key                   | Default                       | Purpose                                          |
 | --------------------- | ----------------------------- | ------------------------------------------------ |
 | `hostname`            | `draw.awsfundamentals.com`    | Public FQDN, no scheme                           |
-| `alarmEmail`          | see `cdk.json`                | Documented contact for alarms (see below)        |
 | `instanceName`        | `excalidash`                  | Lightsail resource name prefix                   |
 | `bundleId`            | `micro_3_0`                   | Instance size. Changing it replaces the instance |
 | `blueprintId`         | `ubuntu_24_04`                | OS image. Changing it replaces the instance      |
-| `excalidashVersion`   | `0.6.0`                       | Image tag baked into the first boot              |
+| `excalidashVersion`   | `0.6.5`                       | Image tag baked into the first boot              |
 | `backupRetentionDays` | `30`                          | Days to keep backups in the bucket               |
 | `bucketName`          | `<instanceName>-<account id>` | Lightsail bucket name, globally unique           |
 
-The deploy prints six outputs: `PublicIp`, `BucketName`, `InstanceName`, `Hostname`,
-`SshCommand`, and `AlarmContactCommand`.
+The deploy prints five outputs: `PublicIp`, `BucketName`, `InstanceName`, `Hostname`,
+and `SshCommand`.
 
 The instance boots, installs Docker and the AWS CLI, writes the compose file and
 Caddyfile, fetches or creates the secrets, and starts the stack. That takes about
@@ -106,17 +104,6 @@ you are the admin. Registration is closed for everyone else. Create further
 users in Admin, Access Control.
 
 Download the default SSH key once from the Lightsail console: Account, SSH keys, `eu-central-1`.
-
-## Alarms
-
-CloudFormation cannot verify an email address, so do this once per region.
-Run the `AlarmContactCommand` output from the deploy. It looks like this:
-
-```bash
-aws lightsail create-contact-method --protocol Email --contact-endpoint you@example.com --region eu-central-1
-```
-
-Click the link in the email. Until then the alarms exist but stay silent.
 
 ## Backups
 
@@ -173,7 +160,7 @@ A replaced instance then boots on the same version as the database.
 pnpm destroy --profile <your-profile>
 ```
 
-This removes the instance, the static IP, and the alarms. Auto snapshots go with
+This removes the instance and the static IP. Auto snapshots go with
 the instance. The bucket is retained on purpose because it holds the secrets
 and the backups. Delete it by hand when you are sure:
 
@@ -190,6 +177,7 @@ Either delete the bucket first, or deploy with `-c bucketName=<another-name>`.
 - High availability. ExcaliDash supports one backend instance.
 - PostgreSQL or S3 image storage. Both work upstream but are not wired here.
 - OIDC login. Set the `OIDC_*` variables in `assets/docker-compose.yml` if you need it.
+- Alarms. Add Lightsail metric alarms once you need them.
 - CI. Run `pnpm test`, `pnpm typecheck`, and `pnpm lint` locally.
 
 ## Layout
@@ -197,7 +185,7 @@ Either delete the bucket first, or deploy with `-c bucketName=<another-name>`.
 ```
 bin/app.ts          CDK app entry
 lib/config.ts       context keys, defaults, validation
-lib/stack.ts        instance, static IP, bucket, alarms, outputs
+lib/stack.ts        instance, static IP, bucket, outputs
 lib/user-data.ts    renders assets/ into one cloud-init script
 assets/             files written onto the instance on first boot
 scripts/update.sh   version bump script, also installed on the instance

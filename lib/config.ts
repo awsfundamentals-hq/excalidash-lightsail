@@ -1,6 +1,5 @@
 export interface StackConfig {
   hostname: string;
-  alarmEmail: string;
   instanceName: string;
   bundleId: string;
   blueprintId: string;
@@ -14,11 +13,10 @@ export const AVAILABILITY_ZONE = `${REGION}a`;
 
 const DEFAULTS: StackConfig = {
   hostname: "draw.awsfundamentals.com",
-  alarmEmail: "alessandro.volpicella@gmail.com",
   instanceName: "excalidash",
   bundleId: "micro_3_0",
   blueprintId: "ubuntu_24_04",
-  excalidashVersion: "0.6.0",
+  excalidashVersion: "0.6.5",
   backupRetentionDays: 30,
 };
 
@@ -47,7 +45,6 @@ const readNumber = (read: ContextReader, key: keyof StackConfig, fallback: numbe
 export const loadConfig = (read: ContextReader): StackConfig => {
   const config: StackConfig = {
     hostname: readString(read, "hostname", DEFAULTS.hostname),
-    alarmEmail: readString(read, "alarmEmail", DEFAULTS.alarmEmail),
     instanceName: readString(read, "instanceName", DEFAULTS.instanceName),
     bundleId: readString(read, "bundleId", DEFAULTS.bundleId),
     blueprintId: readString(read, "blueprintId", DEFAULTS.blueprintId),

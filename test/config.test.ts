@@ -10,7 +10,7 @@ describe("loadConfig", () => {
       hostname: "draw.awsfundamentals.com",
       bundleId: "micro_3_0",
       blueprintId: "ubuntu_24_04",
-      excalidashVersion: "0.6.0",
+      excalidashVersion: "0.6.5",
       backupRetentionDays: 30,
     });
     expect(config.bucketName).toBeUndefined();
