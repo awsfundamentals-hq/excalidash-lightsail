@@ -68,6 +68,7 @@ Every setting has a default in `lib/config.ts`. Override any of them with `-c ke
 | `bundleId`            | `micro_3_0`                   | Instance size. Changing it replaces the instance |
 | `blueprintId`         | `ubuntu_24_04`                | OS image. Changing it replaces the instance      |
 | `excalidashVersion`   | `0.6.5`                       | Image tag baked into the first boot              |
+| `frontendImage`       | upstream frontend image       | Full frontend image ref, for a patched build     |
 | `backupRetentionDays` | `30`                          | Days to keep backups in the bucket               |
 | `bucketName`          | `<instanceName>-<account id>` | Lightsail bucket name, globally unique           |
 
@@ -153,6 +154,28 @@ Database migrations run inside the backend on start.
 The first-boot script only runs once, so also pass the new version on your next
 deploy with `-c excalidashVersion=0.6.1`, or change the default in `lib/config.ts`.
 A replaced instance then boots on the same version as the database.
+
+## Patched frontend
+
+Upstream ExcaliDash 0.6.5 ships Excalidraw 0.18.1, which has no library search.
+The fork [awsfundamentals-hq/ExcaliDash](https://github.com/awsfundamentals-hq/ExcaliDash)
+adds it on the `aws/library-search` branch. A tag like `0.6.5-libsearch.1` builds
+`ghcr.io/awsfundamentals-hq/excalidash-frontend:<tag>`. The backend stays upstream.
+
+Pass the image as the second argument to the update script:
+
+```bash
+sudo /opt/excalidash/bin/update.sh 0.6.5 ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-libsearch.1
+```
+
+Then deploy with the same image, so a replaced instance boots with it:
+
+```bash
+pnpm deploy --profile <your-profile> -c frontendImage=ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-libsearch.1
+```
+
+Without the second argument, the update script moves the frontend back to upstream.
+Do that once an upstream release includes library search.
 
 ## Teardown
 

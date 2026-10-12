@@ -3,9 +3,10 @@ set -euo pipefail
 
 VERSION="${1:-}"
 if [ -z "${VERSION}" ]; then
-  echo "usage: $0 <excalidash-version>   e.g. $0 0.6.1" >&2
+  echo "usage: $0 <excalidash-version> [frontend-image]   e.g. $0 0.6.1" >&2
   exit 1
 fi
+FRONTEND_IMAGE="${2:-zimengxiong/excalidash-frontend:${VERSION}}"
 if [ "$(id -u)" -ne 0 ]; then
   echo "run as root: sudo $0 ${VERSION}" >&2
   exit 1
@@ -21,8 +22,11 @@ sqlite3 "${DB}" ".backup '${BACKUP}'"
 chmod 600 "${BACKUP}"
 "${APP_DIR}/bin/backup-sync.sh"
 
-echo "[update] pinning images to ${VERSION}"
-sed -i -E "s#(zimengxiong/excalidash-(backend|frontend)):[^[:space:]]+#\1:${VERSION}#g" "${COMPOSE}"
+echo "[update] pinning backend to ${VERSION} and frontend to ${FRONTEND_IMAGE}"
+sed -i -E \
+  -e "s#(zimengxiong/excalidash-backend):[^[:space:]]+#\1:${VERSION}#" \
+  -e "s#image: [^[:space:]]*excalidash-frontend:[^[:space:]]+#image: ${FRONTEND_IMAGE}#" \
+  "${COMPOSE}"
 
 cd "${APP_DIR}"
 docker compose pull

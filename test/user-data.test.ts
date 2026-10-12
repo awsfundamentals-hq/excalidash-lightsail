@@ -31,6 +31,14 @@ describe("renderUserData", () => {
     expect(script).toContain("zimengxiong/excalidash-frontend:0.6.0");
   });
 
+  it("uses the frontend image override and keeps the backend on the configured version", () => {
+    const image = "ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.0-libsearch.1";
+    const custom = renderUserData({ ...values, frontendImage: image });
+    expect(custom).toContain(`image: ${image}`);
+    expect(custom).toContain("zimengxiong/excalidash-backend:0.6.0");
+    expect(custom).not.toContain("image: zimengxiong/excalidash-frontend");
+  });
+
   it("writes the hostname into the Caddyfile and FRONTEND_URL", () => {
     expect(script).toContain("test.example.com {");
     expect(script).toContain("FRONTEND_URL=https://test.example.com");
