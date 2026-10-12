@@ -157,25 +157,28 @@ A replaced instance then boots on the same version as the database.
 
 ## Patched frontend
 
-Upstream ExcaliDash 0.6.5 ships Excalidraw 0.18.1, which has no library search.
 The fork [awsfundamentals-hq/ExcaliDash](https://github.com/awsfundamentals-hq/ExcaliDash)
-adds it on the `aws/library-search` branch. A tag like `0.6.5-libsearch.1` builds
-`ghcr.io/awsfundamentals-hq/excalidash-frontend:<tag>`. The backend stays upstream.
+runs as "AWS Fundamentals Draw". Its `awsf` branch adds two things on top of upstream:
+
+- Library search. Upstream ExcaliDash 0.6.5 ships Excalidraw 0.18.1, which has none.
+- AWS Fundamentals branding and a "Self-hosted on Lightsail for $8/month" badge.
+
+A tag like `0.6.5-awsf.1` builds `ghcr.io/awsfundamentals-hq/excalidash-frontend:<tag>`.
+The backend stays upstream.
 
 Pass the image as the second argument to the update script:
 
 ```bash
-sudo /opt/excalidash/bin/update.sh 0.6.5 ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-libsearch.1
+sudo /opt/excalidash/bin/update.sh 0.6.5 ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-awsf.1
 ```
 
 Then deploy with the same image, so a replaced instance boots with it:
 
 ```bash
-pnpm deploy --profile <your-profile> -c frontendImage=ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-libsearch.1
+pnpm deploy --profile <your-profile> -c frontendImage=ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-awsf.1
 ```
 
 Without the second argument, the update script moves the frontend back to upstream.
-Do that once an upstream release includes library search.
 
 ## Teardown
 
@@ -218,4 +221,6 @@ test/               vitest + CDK assertions
 ## Credits
 
 ExcaliDash is by [Zimeng Xiong](https://github.com/ZimengXiong/ExcaliDash), LGPL-3.0.
-This repo only references its published images. Code here is MIT.
+The branded frontend is built from the public fork
+[awsfundamentals-hq/ExcaliDash](https://github.com/awsfundamentals-hq/ExcaliDash),
+also LGPL-3.0. Code in this repo is MIT.
