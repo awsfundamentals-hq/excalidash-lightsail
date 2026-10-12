@@ -32,6 +32,7 @@ export class ExcalidashLightsailStack extends Stack {
         bucketName,
         region: REGION,
         excalidashVersion: config.excalidashVersion,
+        frontendImage: config.frontendImage,
         backupRetentionDays: config.backupRetentionDays,
       }),
       addOns: [

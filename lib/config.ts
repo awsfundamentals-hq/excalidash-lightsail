@@ -6,6 +6,7 @@ export interface StackConfig {
   excalidashVersion: string;
   backupRetentionDays: number;
   bucketName?: string;
+  frontendImage?: string;
 }
 
 export const REGION = "eu-central-1";
@@ -22,6 +23,7 @@ const DEFAULTS: StackConfig = {
 
 const HOSTNAME_PATTERN = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/;
 const VERSION_PATTERN = /^\d+\.\d+\.\d+(?:[-.][0-9A-Za-z.-]+)?$/;
+const IMAGE_PATTERN = /^[a-z0-9]+(?:[._/-][a-z0-9]+)*:[0-9A-Za-z._-]+$/;
 
 type ContextReader = (key: string) => unknown;
 
@@ -53,6 +55,9 @@ export const loadConfig = (read: ContextReader): StackConfig => {
   };
   const bucketName = read("bucketName");
   if (typeof bucketName === "string" && bucketName !== "") config.bucketName = bucketName;
+  const frontendImage = read("frontendImage");
+  if (typeof frontendImage === "string" && frontendImage !== "")
+    config.frontendImage = frontendImage;
 
   if (!HOSTNAME_PATTERN.test(config.hostname)) {
     throw new Error(
@@ -62,6 +67,11 @@ export const loadConfig = (read: ContextReader): StackConfig => {
   if (!VERSION_PATTERN.test(config.excalidashVersion)) {
     throw new Error(
       `Context "excalidashVersion" must look like 0.6.0, got "${config.excalidashVersion}"`,
+    );
+  }
+  if (config.frontendImage !== undefined && !IMAGE_PATTERN.test(config.frontendImage)) {
+    throw new Error(
+      `Context "frontendImage" must be an image with a tag, got "${config.frontendImage}"`,
     );
   }
   return config;

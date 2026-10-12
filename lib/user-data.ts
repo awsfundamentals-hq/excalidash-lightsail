@@ -10,6 +10,7 @@ export interface UserDataValues {
   bucketName: string;
   region: string;
   excalidashVersion: string;
+  frontendImage?: string;
   backupRetentionDays: number;
 }
 
@@ -67,6 +68,10 @@ const substitute = (text: string, values: UserDataValues): string =>
     .replaceAll("__HOSTNAME__", values.hostname)
     .replaceAll("__BUCKET__", values.bucketName)
     .replaceAll("__REGION__", values.region)
+    .replaceAll(
+      "__FRONTEND_IMAGE__",
+      values.frontendImage ?? `zimengxiong/excalidash-frontend:${values.excalidashVersion}`,
+    )
     .replaceAll("__VERSION__", values.excalidashVersion)
     .replaceAll("__LOCAL_RETENTION_DAYS__", String(localRetentionDays(values.backupRetentionDays)))
     .replaceAll("__RETENTION_DAYS__", String(values.backupRetentionDays));

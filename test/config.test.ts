@@ -14,6 +14,7 @@ describe("loadConfig", () => {
       backupRetentionDays: 30,
     });
     expect(config.bucketName).toBeUndefined();
+    expect(config.frontendImage).toBeUndefined();
   });
 
   it("applies context overrides", () => {
@@ -31,6 +32,17 @@ describe("loadConfig", () => {
 
   it("rejects a version that is not semver-like", () => {
     expect(() => loadConfig(reader({ excalidashVersion: "latest" }))).toThrow(/excalidashVersion/);
+  });
+
+  it("accepts a frontend image with a tag", () => {
+    const image = "ghcr.io/awsfundamentals-hq/excalidash-frontend:0.6.5-libsearch.1";
+    expect(loadConfig(reader({ frontendImage: image })).frontendImage).toBe(image);
+  });
+
+  it("rejects a frontend image without a tag", () => {
+    expect(() =>
+      loadConfig(reader({ frontendImage: "ghcr.io/awsfundamentals-hq/excalidash-frontend" })),
+    ).toThrow(/frontendImage/);
   });
 
   it("rejects a negative retention", () => {
