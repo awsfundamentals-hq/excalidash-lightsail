@@ -180,6 +180,28 @@ pnpm deploy --profile <your-profile> -c frontendImage=ghcr.io/awsfundamentals-hq
 
 Without the second argument, the update script moves the frontend back to upstream.
 
+## Links on text
+
+You can attach one web link to any text element. This works on the upstream and
+the patched frontend. You need no deploy or update.
+
+1. Select the text element.
+2. Push Cmd+K (Ctrl+K on Windows and Linux), or right-click and pick "Add link".
+3. Paste an `https://` URL and push Enter.
+
+The link saves with the drawing. When the text is not selected, a small link icon
+shows at its top right. Hover over the icon to see the URL. Click it to open the
+URL in a new tab.
+
+To change or remove the link, select the text and hover over it. A popup shows
+the URL with "Edit" and "Remove" buttons.
+
+Some limits:
+
+- The link covers the whole text element. Single words cannot carry their own link.
+- A URL that you type into the text stays plain text. Use Cmd+K to make it a link.
+- Use external web URLs. The editor turns `javascript:`, `data:` and `vbscript:` links into `about:blank`.
+
 ## Teardown
 
 ```bash
