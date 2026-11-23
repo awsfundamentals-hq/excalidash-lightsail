@@ -44,7 +44,8 @@ fi
 usermod -aG docker ubuntu
 
 install -d -m 0755 /opt/excalidash /opt/excalidash/bin
-install -d -m 0700 /opt/excalidash/data/prisma /opt/excalidash/data/backups
+# The backend image runs as nodejs (uid 1001) and writes its secrets, database and backups here.
+install -d -m 0700 -o 1001 -g 65533 /opt/excalidash/data/prisma /opt/excalidash/data/backups
 install -d -m 0755 /opt/excalidash/caddy/data /opt/excalidash/caddy/config
 
 # __FILES__
